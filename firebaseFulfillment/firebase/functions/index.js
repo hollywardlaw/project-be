@@ -16,7 +16,8 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
     // the document  {entry: "<value of database entry>"} in the 'agent' document
     const dialogflowAgentRef = db.collection('users').doc('agent');
     return db.runTransaction(t => {
-      t.set(dialogflowAgentRef, { message: 'diego' });
+      console.log(agent.parameters.activity)
+      t.update(dialogflowAgentRef, { message: 'test' });
       return Promise.resolve('Write complete');
     }).catch(err => {
       console.log(`Error writing to Firestore: ${err}`);
@@ -61,5 +62,6 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
   intentMap.set('positive_response', handlerFunction);
   intentMap.set('positive_response_activities', handlerFunction);
   intentMap.set('positive_response_activities - future', handlerFunction);
+  intentMap.set('negative_response_no_wantstochat_activities_future', handlerFunction);
   agent.handleRequest(intentMap);
 });
