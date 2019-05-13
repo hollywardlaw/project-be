@@ -26,7 +26,7 @@ app.intent('Log Mood', conv => {
     conv.ask('Thats great, what have you been up to?');
   } else if (mood === 'neutral') {
     conv.ask('OK, what have you been up to?');
-  } else if (mood === 'bad') {
+  } else if (mood === 'negative') {
     conv.ask('Sorry to hear that, what have you been up to?');
   }
 });
