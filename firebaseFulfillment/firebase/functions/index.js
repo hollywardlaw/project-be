@@ -32,17 +32,6 @@ app.intent('Log Mood', conv => {
 });
 
 app.intent('Log Activity', conv => {
-  const mood = conv.body.queryResult.outputContexts[0].parameters.Mood;
-  if (mood === 'positive') {
-    conv.ask("That's great! I'll add it to your diary!");
-  } else if (mood === 'neutral') {
-    conv.ask("OK, I'll make a note of that.");
-  } else if (mood === 'negative') {
-    conv.ask("I'm sorry to hear that, I will add it to your diary.");
-  }
-});
-
-app.intent('Confirm', conv => {
   const userID =
     conv.body.queryResult.outputContexts[0].parameters['UserID.original'];
   const mood = conv.body.queryResult.outputContexts[0].parameters.Mood;
@@ -68,7 +57,13 @@ app.intent('Confirm', conv => {
     .runTransaction(t => {
       t.set(dialogflowAgentRef, { mood, activity });
       return Promise.resolve('Write complete').then(() => {
-        conv.ask('OK, that has been saved');
+        if (mood === 'positive') {
+          conv.ask("That's great! I'll add it to your diary!");
+        } else if (mood === 'neutral') {
+          conv.ask("OK, I'll make a note of that.");
+        } else if (mood === 'negative') {
+          conv.ask("I'm sorry to hear that, I will add it to your diary.");
+        }
       });
     })
     .catch(err => {
