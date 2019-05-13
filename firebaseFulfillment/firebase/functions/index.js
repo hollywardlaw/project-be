@@ -40,13 +40,14 @@ app.intent('Log Activity', conv => {
 
   let currentDate = new Date();
   let day = currentDate.getDate();
+  day = '0' + day;
+  day = day.slice(-2);
   let month = currentDate.getMonth() + 1;
   month = '0' + month;
   month = month.slice(-2);
   let year = currentDate.getFullYear();
-  year = year.toString().slice(-2);
 
-  const date = day + '-' + month + '-' + year;
+  const date = year + '-' + month + '-' + day;
 
   const dialogflowAgentRef = db
     .collection('users')
