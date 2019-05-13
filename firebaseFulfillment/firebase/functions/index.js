@@ -7,7 +7,6 @@ admin.initializeApp(functions.config().firebase);
 const db = admin.firestore();
 const app = dialogflow();
 
-
 app.intent('Default Welcome Intent', conv => {
   conv.ask('Hello, how are you feeling today?');
 });
@@ -33,12 +32,7 @@ app.intent('Log Mood', conv => {
 });
 
 app.intent('Log Activity', conv => {
-  const userID =
-    conv.body.queryResult.outputContexts[0].parameters['UserID.original'];
   const mood = conv.body.queryResult.outputContexts[0].parameters.Mood;
-  const activity =
-    conv.body.queryResult.outputContexts[0].parameters['Activities.original'];
-
   if (mood === 'positive') {
     conv.ask("That's great! I'll add it to your diary!");
   } else if (mood === 'neutral') {
@@ -46,6 +40,14 @@ app.intent('Log Activity', conv => {
   } else if (mood === 'negative') {
     conv.ask("I'm sorry to hear that, I will add it to your diary.");
   }
+});
+
+app.intent('Confirm', conv => {
+  const userID =
+    conv.body.queryResult.outputContexts[0].parameters['UserID.original'];
+  const mood = conv.body.queryResult.outputContexts[0].parameters.Mood;
+  const activity =
+    conv.body.queryResult.outputContexts[0].parameters['Activities.original'];
 
   let currentDate = new Date();
   let day = currentDate.getDate();
@@ -57,15 +59,21 @@ app.intent('Log Activity', conv => {
 
   const date = day + '-' + month + '-' + year;
 
-  const dialogflowAgentRef = db.collection('users').doc(userID).collection('history').doc(date);
-  return db.runTransaction(t => {
-    t.set(dialogflowAgentRef, { mood, activity });
-    return Promise.resolve('Write complete');
-  }).catch(err => {
-    console.log(`Error writing to Firestore: ${err}`);
-    agent.add(`Failed to write "${message}" to the Firestore database.`);
-  });
+  const dialogflowAgentRef = db
+    .collection('users')
+    .doc(userID)
+    .collection('history')
+    .doc(date);
+  return db
+    .runTransaction(t => {
+      t.set(dialogflowAgentRef, { mood, activity });
+      return Promise.resolve('Write complete').then(() => {
+        conv.ask('OK, that has been saved');
+      });
+    })
+    .catch(err => {
+      console.log(`Error writing to Firestore: ${err}`);
+    });
 });
-
 
 exports.dialogflowFirebaseFulfillment = functions.https.onRequest(app);
