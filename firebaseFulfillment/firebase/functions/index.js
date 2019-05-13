@@ -1,7 +1,12 @@
 const functions = require('firebase-functions');
+const admin = require('firebase-admin');
 const { dialogflow } = require('actions-on-google');
 
+process.env.DEBUG = 'dialogflow:*';
+admin.initializeApp(functions.config().firebase);
+const db = admin.firestore();
 const app = dialogflow();
+
 
 app.intent('Default Welcome Intent', conv => {
   conv.ask('Hello, how are you feeling today?');
@@ -34,10 +39,6 @@ app.intent('Log Activity', conv => {
   const activity =
     conv.body.queryResult.outputContexts[0].parameters['Activities.original'];
 
-  console.log(userID);
-  console.log(mood);
-  console.log(activity);
-
   if (mood === 'positive') {
     conv.ask("That's great! I'll add it to your diary!");
   } else if (mood === 'neutral') {
@@ -45,6 +46,26 @@ app.intent('Log Activity', conv => {
   } else if (mood === 'negative') {
     conv.ask("I'm sorry to hear that, I will add it to your diary.");
   }
+
+  let currentDate = new Date();
+  let day = currentDate.getDate();
+  let month = currentDate.getMonth() + 1;
+  month = '0' + month;
+  month = month.slice(-2);
+  let year = currentDate.getFullYear();
+  year = year.toString().slice(-2);
+
+  const date = day + '-' + month + '-' + year;
+
+  const dialogflowAgentRef = db.collection('users').doc(userID).collection('history').doc(date);
+  return db.runTransaction(t => {
+    t.set(dialogflowAgentRef, { mood, activity });
+    return Promise.resolve('Write complete');
+  }).catch(err => {
+    console.log(`Error writing to Firestore: ${err}`);
+    agent.add(`Failed to write "${message}" to the Firestore database.`);
+  });
 });
+
 
 exports.dialogflowFirebaseFulfillment = functions.https.onRequest(app);
