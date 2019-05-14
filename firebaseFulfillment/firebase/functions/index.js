@@ -62,22 +62,10 @@ app.intent('Log Mood', agent => {
 });
 
 app.intent('Log Activity', agent => {
-  // const activity = agent.parameters.activities;
   const activity = agent.query;
 
   let user = agent.body.queryResult.outputContexts[0].parameters.userid;
   let mood = agent.body.queryResult.outputContexts[0].parameters.mood;
-
-  // let currentDate = new Date();
-  // let day = currentDate.getDate();
-  // day = '0' + day;
-  // day = day.slice(-2);
-  // let month = currentDate.getMonth() + 1;
-  // month = '0' + month;
-  // month = month.slice(-2);
-  // let year = currentDate.getFullYear();
-
-  // let date = year + '-' + month + '-' + day;
 
   if (mood === 'positive') {
     agent.ask("That's great, I'll add that to your diary!");
@@ -94,6 +82,25 @@ app.intent('Log Activity', agent => {
     .doc(date);
 
   return dialogflowAgentRef.update({ activity });
+});
+
+app.intent('Log Achievement', agent => {
+  agent.ask("That's great! What have you achieved?");
+});
+
+app.intent('Confirm Achievement', agent => {
+  let user = agent.body.queryResult.outputContexts[1].parameters.userid;
+  let achievement = agent.query;
+
+  agent.ask("Congratulations! I've added that to your diary!");
+
+  const dialogflowAgentRef = db
+    .collection('users')
+    .doc(user)
+    .collection('history')
+    .doc(date);
+
+  return dialogflowAgentRef.update({ achievement });
 });
 
 exports.dialogflowFirebaseFulfillment = functions.https.onRequest(app);
