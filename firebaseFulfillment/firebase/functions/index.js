@@ -48,21 +48,47 @@ app.intent('Log Mood', agent => {
     agent.ask("That's great, what have you been up to?");
   } else if (mood === 'negative') {
     agent.ask('Sorry to hear that, what have you been up to?');
+  } else if (mood === 'imposter') {
+    const dialogflowAgentRef = db
+      .collection('users')
+      .doc(user)
+      .collection('history');
+
+    return dialogflowAgentRef.get().then(snapshot => {
+      let achievements = '';
+
+      snapshot.forEach(doc => {
+        // console.log(doc.id, '=>', doc.data());
+        achievements += doc.data().achievement + ', ';
+      });
+
+      console.log(achievements);
+
+      return agent.ask(
+        "Why don't you take a look through some previous entries you feel proud of? " +
+          achievements.slice(0, achievements.length - 2) +
+          '.'
+      );
+    });
   } else {
     agent.ask('What have you been up to?');
   }
 
-  const dialogflowAgentRef = db
-    .collection('users')
-    .doc(user)
-    .collection('history')
-    .doc(date);
+  if (mood === 'positive' || mood === 'negative' || mood === 'neutral') {
+    const dialogflowAgentRef = db
+      .collection('users')
+      .doc(user)
+      .collection('history')
+      .doc(date);
 
-  return dialogflowAgentRef.set({ mood }).then(() => {});
+    return dialogflowAgentRef.update({ mood }).then(() => {});
+  }
 });
 
 app.intent('Log Activity', agent => {
-  const activity = agent.query;
+  let activity = agent.query;
+
+  if (agent.parameters.activities) activity = agent.parameters.activities;
 
   let user = agent.body.queryResult.outputContexts[0].parameters.userid;
   let mood = agent.body.queryResult.outputContexts[0].parameters.mood;
@@ -85,7 +111,7 @@ app.intent('Log Activity', agent => {
 });
 
 app.intent('Log Achievement', agent => {
-  agent.ask("That's great! What have you achieved?");
+  agent.ask("That's great! What do you feel proud of?");
 });
 
 app.intent('Confirm Achievement', agent => {
