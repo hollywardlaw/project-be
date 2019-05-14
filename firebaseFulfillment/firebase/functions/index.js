@@ -34,7 +34,7 @@ app.intent('Log ID', agent => {
   return dialogflowAgentRef.get().then(snapshot => {
     const data = snapshot.data();
     const name = data.name;
-    return agent.ask(`Hello, ${name}, how are you today?`);
+    return agent.ask(`Hello, ${name}, how are you today? 🙂`);
   });
 });
 
@@ -44,7 +44,7 @@ app.intent('Log Mood', agent => {
   let user = agent.body.queryResult.outputContexts[0].parameters.userid;
 
   if (mood === 'positive') {
-    agent.ask("That's great, what have you been up to?");
+    agent.ask("That's great! What have you been up to? 😄");
   } else if (mood === 'negative') {
     agent.ask('Sorry to hear that, what have you been up to?');
   } else if (mood === 'imposter') {
@@ -63,11 +63,13 @@ app.intent('Log Mood', agent => {
       return agent.ask(
         "Why don't you take a look through some previous entries you feel proud of? " +
           achievements.slice(0, achievements.length - 2) +
-          '.'
+          '. 🙂'
       );
     });
   } else if (mood === 'alert') {
-    agent.ask('Samaritans are available to listen, 24 hours a day, on 116 123');
+    agent.ask(
+      'Samaritans are available to listen, 24 hours a day, on 116 123.'
+    );
   } else {
     agent.ask('What have you been up to?');
   }
@@ -125,6 +127,26 @@ app.intent('Confirm Achievement', agent => {
     .doc(date);
 
   return dialogflowAgentRef.update({ achievement });
+});
+
+app.intent('End of Conversation', agent => {
+  const mood = agent.body.queryResult.outputContexts[0].parameters.mood;
+
+  if (mood === 'positive') {
+    const responses = [
+      'Thanks for checking in, speak to you soon!',
+      'Bye, thanks for checking in!'
+    ];
+    agent.ask(responses[Math.floor(Math.random() * responses.length)]);
+  } else if (mood === 'negative') {
+    const responses = [
+      'Good bye, I’m at the bottom of the page if you want to chat.',
+      'You know where I am if you want to chat.'
+    ];
+    agent.ask(responses[Math.floor(Math.random() * responses.length)]);
+  } else {
+    agent.ask('Speak to you soon, take care.');
+  }
 });
 
 exports.dialogflowFirebaseFulfillment = functions.https.onRequest(app);
