@@ -3,7 +3,6 @@ const admin = require('firebase-admin');
 const { dialogflow } = require('actions-on-google');
 
 process.env.DEBUG = 'dialogflow:*';
-// admin.initializeApp(functions.config().firebase);
 admin.initializeApp();
 const db = admin.firestore();
 const app = dialogflow();
@@ -58,11 +57,8 @@ app.intent('Log Mood', agent => {
       let achievements = '';
 
       snapshot.forEach(doc => {
-        // console.log(doc.id, '=>', doc.data());
         achievements += doc.data().achievement + ', ';
       });
-
-      console.log(achievements);
 
       return agent.ask(
         "Why don't you take a look through some previous entries you feel proud of? " +
@@ -70,6 +66,8 @@ app.intent('Log Mood', agent => {
           '.'
       );
     });
+  } else if (mood === 'alert') {
+    agent.ask('Samaritans are available to listen, 24 hours a day, on 116 123');
   } else {
     agent.ask('What have you been up to?');
   }
